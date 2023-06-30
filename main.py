@@ -115,6 +115,7 @@ while 1:
 					    By.XPATH,
 					    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]/div[3]/div[{j}]/div[2]/div",
 					).text
+					ans_mean = ' '.join(re.split("[\n]", ans_mean))
 					if word_dict[cash_idx]["mean"] == ans_mean:
 						driver.find_element(
 						    by=By.XPATH,
@@ -178,6 +179,57 @@ while 1:
 		except NoSuchElementException:
 			pass
 	elif ch_d == 4:
+		print("Ctrl + C 를 눌러 강제 종료")
+		##매칭 게임
+		driver.find_element(
+		    by=By.XPATH,
+		    value="/html/body/div[2]/div/div[2]/div[1]/div[5]",
+		).click()
+		time.sleep(1)
+
+		driver.find_element(
+		    by=By.XPATH,
+		    value="//*[@id='wrapper-learn']/div[1]/div[1]/div/div/div[2]/div[4]/a",
+		).click()
+
+		# 매칭 게임 시작
+		time.sleep(2.5)
+		while True:
+			left_card = []
+			for i in range(0, 4):
+				cash_idx = driver.find_element(
+				    by=By.XPATH,
+				    value=f"//*[@id='left_card_{i}']/div/div[1]/div/a/i",
+				).get_attribute('data-idx')
+				left_card.append(cash_idx)
+				print(f"{cash_idx}\t{word_dict[cash_idx]['word']}\t {word_dict[cash_idx]['mean']}")
+			print("")
+			for i in range(0, 4):
+				cash_mean = driver.find_element(
+				    by=By.XPATH,
+				    value=f"//*[@id='right_card_{i}']/div/div/div/div",
+				).text
+				cash_mean = " ".join(re.split("[\n]", cash_mean))
+				print(f"{cash_mean}")
+				flag = False
+				for j in range(0, 4):
+					if cash_mean == word_dict[left_card[j]]["mean"]:
+						print("click")
+						flag = True
+						driver.find_element(
+						    by=By.XPATH,
+						    value=f"//*[@id='left_card_{j}']/div/div[1]/div/div",
+						).click()
+						driver.find_element(
+						    by=By.XPATH,
+						    value=f"//*[@id='right_card_{i}']/div/div/div/div",
+						).click()
+						break
+				if flag:
+					break
+				print("")
+			time.sleep(2.5)
+	if ch_d == 5:
 		driver.find_element(by=By.XPATH, value="/html/body/div[2]/div/div[2]/div[2]/div").click()
 		time.sleep(0.5)
 		driver.find_element(by=By.XPATH, value="//*[@id='wrapper-test']/div/div[1]/div[1]/div[4]/a").click()
@@ -256,72 +308,6 @@ while 1:
 				).click()
 				time.sleep(2)
 			time.sleep(3)
-	if ch_d == 5:
-		print("Ctrl + C 를 눌러 강제 종료")
-		##매칭 게임
-		driver.find_element(by=By.CSS_SELECTOR, value="a.w-120:nth-child(2) > div:nth-child(1)").click()
-		time.sleep(1)
-
-		# 단어 1000개 이상
-		try:
-			driver.find_element(by=By.XPATH, value="/html/body/div[53]/div[2]/div/div[2]/a[3]").click()
-			time.sleep(1)
-		except Exception as e:
-			pass
-		driver.find_element(by=By.XPATH, value="/html/body/div[5]/div[2]/div/div/div[1]/div[4]/a[1]").click()
-		# 매칭 게임 시작
-		time.sleep(2.5)
-		past_cards = ""
-		while True:
-			try:
-				html = BeautifulSoup(driver.page_source, "html.parser")
-				# 점수 순으로 정렬
-				unsorted_cards = dict()
-				cards = html.find("div", class_="match-body").get_text(strip=True)
-				# 이전 카드와 같으면 다시
-				if past_cards == cards:
-					raise NotImplementedError
-				for i in range(4):
-					left_card = html.find("div", id="left_card_{}".format(i))
-					score = int(left_card.find("span", class_="card-score").get_text(strip=True))
-					left_card.find("span", class_="card-score").decompose()
-					question = left_card.get_text(strip=True)
-					unsorted_cards["{}_{}".format(question, str(i))] = score
-					# 점수 높은 순서로 배열
-					sorted_lists = {k: v for k, v in sorted(unsorted_cards.items(), key=lambda item: item[1])}.keys()
-				for k in sorted_lists:
-					word = k.split("_")[0]
-					order = k.split("_")[1]
-					# answer = list[word]
-					answer = mean[word.index(word)]
-
-					for j in range(4):
-						right_card = html.find("div", id="right_card_{}".format(j)).get_text(strip=True)
-						if right_card == answer:
-							left_element = driver.find_element_by_id("left_card_{}".format(order))
-							right_element = driver.find_element_by_id("right_card_{}".format(j))
-							try:
-								left_element.click()
-								right_element.click()
-							except ElementClickInterceptedException:
-								action = ActionChains(driver)
-								action.click(on_element=left_element)
-								action.click(on_element=right_element)
-								action.perform()
-								action.reset_actions()
-							raise NotImplementedError
-						else:
-							continue
-			except NotImplementedError:
-				if driver.find_element_by_class_name("rank-info").size["height"] > 0:
-					print("완료되었습니다")
-					driver.find_element(by=By.CSS_SELECTOR, value=".btn-default").click()
-					time.sleep(1)
-					break
-				else:
-					past_cards = cards
-			except KeyboardInterrupt:
-				break
 
 	driver.get(class_site)
 	ch_d = chd_wh()
