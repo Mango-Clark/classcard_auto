@@ -1,10 +1,8 @@
-import random
 import time
 import warnings
 import re
 
 import chromedriver_autoinstaller
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import (
     ElementClickInterceptedException,
@@ -13,6 +11,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 # 함수불러오기
 from utility import chd_wh, get_id, word_get, change_url
@@ -101,43 +100,38 @@ while 1:
 		    by=By.CSS_SELECTOR,
 		    value="#wrapper-learn > div.start-opt-body > div > div > div > div.m-t > a",
 		).click()
-		time.sleep(2)
+		time.sleep(2.5)
 
-		try:
-			for i in range(1, word_num + 1):
-				cash_idx = driver.find_element(
-				    by=By.XPATH,
-				    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]",
-				).get_attribute("data-idx")
+		for i in range(1, word_num + 1):
+			cash_idx = driver.find_element(
+			    by=By.XPATH,
+			    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]",
+			).get_attribute("data-idx")
 
-				for j in range(1, 5):
-					ans_mean = driver.find_element(
-					    By.XPATH,
+			for j in range(1, 5):
+				ans_mean = driver.find_element(
+				    By.XPATH,
+				    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]/div[3]/div[{j}]/div[2]/div",
+				).text
+				ans_mean = ' '.join(re.split("[\n]", ans_mean))
+				if word_dict[cash_idx]["mean"] == ans_mean:
+					driver.find_element(
+					    by=By.XPATH,
 					    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]/div[3]/div[{j}]/div[2]/div",
-					).text
-					ans_mean = ' '.join(re.split("[\n]", ans_mean))
-					if word_dict[cash_idx]["mean"] == ans_mean:
-						driver.find_element(
-						    by=By.XPATH,
-						    value=
-						    f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]/div[3]/div[{j}]/div[2]/div",
-						).click()
-						break
-					if j == 4:
-						driver.find_element(
-						    by=By.XPATH,
-						    value=
-						    f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]/div[3]/div[{j}]/div[2]/div",
-						).click()
-						time.sleep(1)
-						driver.find_element(
-						    by=By.XPATH,
-						    value="//*[@id='wrapper-learn']/div[1]/div/div[3]/div[2]/a",
-						)
-						break
-				time.sleep(2.5)
-		except Exception as e:
-			pass
+					).click()
+					break
+				if j == 4:
+					driver.find_element(
+					    by=By.XPATH,
+					    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]/div[3]/div[{j}]/div[2]/div",
+					).click()
+					time.sleep(1)
+					driver.find_element(
+					    by=By.XPATH,
+					    value="//*[@id='wrapper-learn']/div[1]/div/div[3]/div[2]/a",
+					)
+					break
+			time.sleep(2.5)
 
 		print("리콜 학습 종료")
 	elif ch_d == 3:
@@ -195,119 +189,73 @@ while 1:
 		# 매칭 게임 시작
 		time.sleep(2.5)
 		while True:
-			left_card = []
-			for i in range(0, 4):
-				cash_idx = driver.find_element(
-				    by=By.XPATH,
-				    value=f"//*[@id='left_card_{i}']/div/div[1]/div/a/i",
-				).get_attribute('data-idx')
-				left_card.append(cash_idx)
-				print(f"{cash_idx}\t{word_dict[cash_idx]['word']}\t {word_dict[cash_idx]['mean']}")
-			print("")
-			for i in range(0, 4):
-				cash_mean = driver.find_element(
-				    by=By.XPATH,
-				    value=f"//*[@id='right_card_{i}']/div/div/div/div",
-				).text
-				cash_mean = " ".join(re.split("[\n]", cash_mean))
-				print(f"{cash_mean}")
-				flag = False
-				for j in range(0, 4):
-					if cash_mean == word_dict[left_card[j]]["mean"]:
-						print("click")
-						flag = True
-						driver.find_element(
-						    by=By.XPATH,
-						    value=f"//*[@id='left_card_{j}']/div/div[1]/div/div",
-						).click()
-						driver.find_element(
-						    by=By.XPATH,
-						    value=f"//*[@id='right_card_{i}']/div/div/div/div",
-						).click()
+			try:
+				left_card = []
+				for i in range(0, 4):
+					cash_idx = driver.find_element(
+					    by=By.XPATH,
+					    value=f"//*[@id='left_card_{i}']/div/div[1]/div/a/i",
+					).get_attribute('data-idx')
+					left_card.append(cash_idx)
+				for i in range(0, 4):
+					cash_answer = driver.find_element(
+					    by=By.XPATH,
+					    value=f"//*[@id='right_card_{i}']/div/div/div/div",
+					).text
+					cash_answer = " ".join(re.split("[\n]", cash_answer))
+					flag = False
+					for j in range(0, 4):
+						if cash_answer == word_dict[left_card[j]]["mean"]:
+							flag = True
+							driver.find_element(
+							    by=By.XPATH,
+							    value=f"//*[@id='left_card_{j}']/div/div[1]/div",
+							).click()
+							driver.find_element(
+							    by=By.XPATH,
+							    value=f"//*[@id='right_card_{i}']/div/div/div/div",
+							).click()
+							break
+					if flag:
 						break
-				if flag:
-					break
-				print("")
-			time.sleep(2.5)
+				time.sleep(2)
+			except:
+				pass
+				break
 	if ch_d == 5:
 		driver.find_element(by=By.XPATH, value="/html/body/div[2]/div/div[2]/div[2]/div").click()
 		time.sleep(0.5)
 		driver.find_element(by=By.XPATH, value="//*[@id='wrapper-test']/div/div[1]/div[1]/div[4]/a").click()
 		time.sleep(0.5)
+		question_number = driver.find_element(
+		    by=By.XPATH, value="//*[@id='wrapper-test']/div/div[1]/div[3]/div[1]/div/div[2]/div[2]/span").text
+		question_number = int(re.split("[ |문항]", question_number)[2])
 		driver.find_element(by=By.XPATH, value="//*[@id='wrapper-test']/div/div[1]/div[3]/div[3]/a").click()
-		time.sleep(1.5)
-
-		## 여기까지 함
-		try:
-			driver.find_element(by=By.XPATH, value="/html/body/div[26]/div[2]/div/div[3]/a").click()
-
-			driver.get(class_site)
-
-			driver.find_element(by=By.XPATH, value="/html/body/div[1]/div[4]/div/div/div[3]/a[1]").click()
-
-			time.sleep(1)
-		except:
-			pass
-
-		driver.find_element(by=By.XPATH, value="/html/body/div[2]/div/div[1]/div[1]/div[4]/a").click()
-
-		driver.find_element(by=By.XPATH, value="/html/body/div[2]/div/div[1]/div[3]/div[3]/a").click()
-
 		time.sleep(2)
-		for i in range(1, 21):
-			cash_d = driver.find_element(
+		for i in range(1, question_number + 1):
+			time.sleep(0.5)
+			cash_given = driver.find_element(
 			    by=By.XPATH,
-			    value=f"/html/body/div[2]/div/div[2]/div[1]/form/div[{i}]/div/div[1]/div[2]/div/div/div",
+			    value=f"//*[@id='testForm']/div[{i}]/div/div[1]/div[2]/div[2]/div/div",
 			).text
-
-			element = driver.find_element(
+			cash_given = " ".join(re.split("[\n]", cash_given))
+			driver.find_element(
 			    by=By.XPATH,
-			    value=f"/html/body/div[2]/div/div[2]/div[1]/form/div[{i}]/div/div[1]/div[2]",
-			)
-			driver.execute_script("arguments[0].click();", element)
-
-			cash_dby = [0, 0, 0, 0]
-
-			for j in range(0, 4):
-				cash_dby[j] = driver.find_element(
+			    value=f'//*[@id="testForm"]/div[{i}]/div/div[1]/div[2]/div[2]/div',
+			).click()
+			time.sleep(0.5)
+			for j in range(1, 7):
+				cash_answer = driver.find_element(
 				    by=By.XPATH,
-				    value=
-				    f"/html/body/div[2]/div/div[2]/div[1]/form/div[{i}]/div/div[2]/div/div[1]/div[{j+1}]/label/div/div",
+				    value=f'//*[@id="testForm"]/div[{i}]/div/div[2]/div/div[1]/div[{j}]/label/div',
 				).text
-
-			time.sleep(2)
-			ck = False
-			if cash_d.upper() != cash_d.lower():
-				for j in range(0, 4):
-					if word.index(cash_d) == mean.index(cash_dby[j]):
-						element = driver.find_element(
-						    by=By.XPATH,
-						    value=
-						    f"/html/body/div[2]/div/div[2]/div[1]/form/div[{i}]/div/div[2]/div/div[1]/div[{j+1}]/label/div/div",
-						)
-						driver.execute_script("arguments[0].click();", element)
-						ck = True
-						break
-			else:
-				for j in range(0, 4):
-					if mean.index(cash_d) == word.index(cash_dby[j]):
-						element = driver.find_element(
-						    by=By.XPATH,
-						    value=
-						    f"/html/body/div[2]/div/div[2]/div[1]/form/div[{i}]/div/div[2]/div/div[1]/div[{j+1}]/label/div/div",
-						)
-						driver.execute_script("arguments[0].click();", element)
-						ck = True
-						break
-			if ck != True:
-				print("\n찾을수없는 단어 감지로 랜덤으로 찍기발동!!\n")
-				driver.find_element(
-				    by=By.XPATH,
-				    value=
-				    f"/html/body/div[2]/div/div[2]/div[1]/form/div[{i}]/div/div[2]/div/div[1]/div[{random.randint(1, 4)}]/label/div/div",
-				).click()
-				time.sleep(2)
+				cash_answer = ' '.join(re.split("[\n]", cash_answer))
+				if cash_answer == word_dict[cash_given]:
+					driver.find_element(
+					    by=By.XPATH,
+					    value=f'//*[@id="testForm"]/div[{i}]/div/div[2]/div/div[1]/div[{j}]/label/div',
+					).click()
+					break
 			time.sleep(3)
-
 	driver.get(class_site)
 	ch_d = chd_wh()

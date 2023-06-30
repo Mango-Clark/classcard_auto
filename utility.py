@@ -45,13 +45,13 @@ def word_get(driver: WebDriver):
 		mean[i] = " ".join(re.split("[\n]", mean[i]))
 
 		retdict.update({idx[i]: {"word": word[i], "mean": mean[i]}})
+		retdict.update({word[i]: mean[i]})
+		retdict.update({mean[i]: word[i]})
 
 	driver.find_element(
 	    by=By.CSS_SELECTOR,
 	    value="#tab_set_all > div.card-list-title > div > div:nth-child(1) > a",
 	).click()
-
-	print(retdict)
 
 	return retdict
 
@@ -147,9 +147,9 @@ Ctrl + C 를 눌러 종료
 	while 1:
 		try:
 			ch_d = input(">>> ")
-			if ch_d.casefold() == "N".casefold():
+			if ch_d.casefold() == "N".casefold() or ch_d.casefold() == "NO".casefold():
 				return get_url()
-			elif ch_d.casefold() == "Y".casefold():
+			elif ch_d.casefold() == "Y".casefold() or ch_d.casefold() == "YES".casefold():
 				return save_url()
 			else:
 				raise ValueError
