@@ -1,6 +1,7 @@
 import time
 import warnings
 import re
+import traceback
 
 import chromedriver_autoinstaller
 from selenium import webdriver
@@ -54,9 +55,9 @@ except:
 time.sleep(1)
 
 word_dict = word_get(driver)
-word_num = len(word_dict)
+word_num = word_dict['word_num']
 
-while 1:
+while True:
 	if ch_d == 1:
 		driver.find_element(
 		    by=By.CSS_SELECTOR,
@@ -68,20 +69,26 @@ while 1:
 		    by=By.CSS_SELECTOR,
 		    value="#wrapper-learn > div.start-opt-body > div > div > div > div.m-t > a",
 		).click()
-		for i in range(1, word_num + 1):
-			time.sleep(2)
-			try:
-				driver.find_element(
-				    by=By.CSS_SELECTOR,
-				    value="#wrapper-learn > div > div > div.study-bottom > div.btn-text.btn-down-cover-box",
-				).click()
-				time.sleep(0.5)
-				driver.find_element(
-				    by=By.CSS_SELECTOR,
-				    value="#wrapper-learn > div > div > div.study-bottom.down > div.btn-text.btn-know-box",
-				).click()
-			except:
-				break
+
+		unknown_count = word_num
+
+		while unknown_count > 1:
+			time.sleep(3)
+			driver.find_element(
+			    by=By.XPATH,
+			    value='//*[@id="wrapper-learn"]/div[1]/div/div[3]/div[1]/a',
+			).click()
+			time.sleep(0.5)
+			driver.find_element(
+			    by=By.XPATH,
+			    value='//*[@id="wrapper-learn"]/div[1]/div/div[3]/div[2]/a',
+			).click()
+			unknown_count = int(
+			    driver.find_element(
+			        by=By.XPATH,
+			        value='//*[@id="wrapper-learn"]/div[1]/div/div[1]/span[3]/span',
+			    ).get_attribute('innerText'))
+			print(f"남은 단어 수: {unknown_count}")
 		time.sleep(1)
 		driver.find_element(
 		    by=By.CSS_SELECTOR,
@@ -102,28 +109,32 @@ while 1:
 		).click()
 		time.sleep(2.5)
 
-		for i in range(1, word_num + 1):
+		unknown_count = word_num
+		while unknown_count > 1:
 			cash_idx = driver.find_element(
-			    by=By.XPATH,
-			    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]",
+			    by=By.CSS_SELECTOR,
+			    value=
+			    "#wrapper-learn > div.cc-table.fill-parent-h.middle.m-center > div > div.study-content.cc-table.middle > div.study-body.fade.in > div.CardItem.current.showing",
 			).get_attribute("data-idx")
-
-			for j in range(1, 5):
+			for i in range(1, 5):
 				ans_mean = driver.find_element(
-				    By.XPATH,
-				    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]/div[3]/div[{j}]/div[2]/div",
-				).text
+				    By.CSS_SELECTOR,
+				    value=
+				    f'#wrapper-learn > div.cc-table.fill-parent-h.middle.m-center > div > div.study-content.cc-table.middle > div.study-body.fade.in > div.CardItem.current.showing > div.card-quest.card-quest-front > div:nth-child({i}) > div.card-quest-list > div',
+				).get_attribute('innerText')
 				ans_mean = ' '.join(re.split("[\n]", ans_mean))
 				if word_dict[cash_idx]["mean"] == ans_mean:
 					driver.find_element(
-					    by=By.XPATH,
-					    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]/div[3]/div[{j}]/div[2]/div",
+					    by=By.CSS_SELECTOR,
+					    value=
+					    f'#wrapper-learn > div.cc-table.fill-parent-h.middle.m-center > div > div.study-content.cc-table.middle > div.study-body.fade.in > div.CardItem.current.showing > div.card-quest.card-quest-front > div:nth-child({i})',
 					).click()
 					break
-				if j == 4:
+				if i == 4:
 					driver.find_element(
-					    by=By.XPATH,
-					    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]/div[3]/div[{j}]/div[2]/div",
+					    by=By.CSS_SELECTOR,
+					    value=
+					    f'#wrapper-learn > div.cc-table.fill-parent-h.middle.m-center > div > div.study-content.cc-table.middle > div.study-body.fade.in > div.CardItem.current.showing > div.card-quest.card-quest-front > div:nth-child({i})',
 					).click()
 					time.sleep(1)
 					driver.find_element(
@@ -131,6 +142,12 @@ while 1:
 					    value="//*[@id='wrapper-learn']/div[1]/div/div[3]/div[2]/a",
 					)
 					break
+			unknown_count = int(
+			    driver.find_element(
+			        by=By.XPATH,
+			        value='//*[@id="wrapper-learn"]/div[1]/div/div[1]/span[3]/span',
+			    ).get_attribute('innerText'))
+			print(f"남은 단어 수: {unknown_count}")
 			time.sleep(2.5)
 
 		print("리콜 학습 종료")
@@ -146,32 +163,29 @@ while 1:
 		).click()
 
 		time.sleep(2)
-		try:
-			for i in range(1, word_num + 1):
-				cash_d = driver.find_element(
+		for i in range(1, word_num + 1):
+			cash_d = driver.find_element(
+			    by=By.XPATH,
+			    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]",
+			).get_attribute('data-idx')
+			in_tag = driver.find_element(
+			    by=By.CSS_SELECTOR,
+			    value=
+			    "#wrapper-learn > div > div > div.study-content.cc-table.middle > div.study-body.fade.in > div.CardItem.current.showing > div.card-bottom > div > div > div > div.text-normal.spell-input > input",
+			)
+			in_tag.click()
+			in_tag.send_keys(word_dict[cash_d]["word"])
+			driver.find_element(by=By.XPATH, value="//*[@id='wrapper-learn']/div/div/div[3]").click()
+			time.sleep(1.5)
+			try:
+				driver.find_element(
 				    by=By.XPATH,
-				    value=f"//*[@id='wrapper-learn']/div[1]/div/div[2]/div[2]/div[{i}]",
-				).get_attribute('data-idx')
-				in_tag = driver.find_element(
-				    by=By.CSS_SELECTOR,
-				    value=
-				    "#wrapper-learn > div > div > div.study-content.cc-table.middle > div.study-body.fade.in > div.CardItem.current.showing > div.card-bottom > div > div > div > div.text-normal.spell-input > input",
-				)
-				in_tag.click()
-				in_tag.send_keys(word_dict[cash_d]["word"])
-				driver.find_element(by=By.XPATH, value="//*[@id='wrapper-learn']/div/div/div[3]").click()
-				time.sleep(1.5)
-				try:
-					driver.find_element(
-					    by=By.XPATH,
-					    value="//*[@id='wrapper-learn']/div/div/div[3]/div[2]",
-					).click()
-				except:
-					pass
-				i += 1
-				time.sleep(1)
-		except NoSuchElementException:
-			pass
+				    value="//*[@id='wrapper-learn']/div/div/div[3]/div[2]",
+				).click()
+			except:
+				pass
+			i += 1
+			time.sleep(1)
 	elif ch_d == 4:
 		print("Ctrl + C 를 눌러 강제 종료")
 		##매칭 게임
@@ -187,21 +201,21 @@ while 1:
 		).click()
 
 		# 매칭 게임 시작
-		time.sleep(2.5)
+		time.sleep(3)
 		while True:
 			try:
 				left_card = []
 				for i in range(0, 4):
 					cash_idx = driver.find_element(
 					    by=By.XPATH,
-					    value=f"//*[@id='left_card_{i}']/div/div[1]/div/a/i",
+					    value=f'//*[@id="left_card_{i}"]/div/div[1]/div/a/i',
 					).get_attribute('data-idx')
 					left_card.append(cash_idx)
 				for i in range(0, 4):
 					cash_answer = driver.find_element(
 					    by=By.XPATH,
 					    value=f"//*[@id='right_card_{i}']/div/div/div/div",
-					).text
+					).get_attribute('innerText')
 					cash_answer = " ".join(re.split("[\n]", cash_answer))
 					flag = False
 					for j in range(0, 4):
@@ -209,18 +223,22 @@ while 1:
 							flag = True
 							driver.find_element(
 							    by=By.XPATH,
-							    value=f"//*[@id='left_card_{j}']/div/div[1]/div",
+							    value=f'//*[@id="left_card_{j}"]',
 							).click()
 							driver.find_element(
 							    by=By.XPATH,
-							    value=f"//*[@id='right_card_{i}']/div/div/div/div",
+							    value=f"//*[@id='right_card_{i}']",
 							).click()
 							break
 					if flag:
 						break
+				score = int(
+				    driver.find_element(
+				        by=By.XPATH, value='//*[@id="match-wrapper"]/div[1]/div[2]/span[2]').get_attribute('innerText'))
 				time.sleep(2)
-			except:
-				pass
+			except KeyboardInterrupt:
+				driver.find_element(by=By.XPATH, value='/html/body/div[1]/div/div[1]/div[1]/a').click()
+				driver.find_element(by=By.XPATH, value='//*[@id="confirmModal"]/div[2]/div/div[2]/a[3]').click()
 				break
 	if ch_d == 5:
 		driver.find_element(by=By.XPATH, value="/html/body/div[2]/div/div[2]/div[2]/div").click()
@@ -248,7 +266,7 @@ while 1:
 				cash_answer = driver.find_element(
 				    by=By.XPATH,
 				    value=f'//*[@id="testForm"]/div[{i}]/div/div[2]/div/div[1]/div[{j}]/label/div',
-				).text
+				).get_attribute('innerText')
 				cash_answer = ' '.join(re.split("[\n]", cash_answer))
 				if cash_answer == word_dict[cash_given]:
 					driver.find_element(

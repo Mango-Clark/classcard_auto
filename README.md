@@ -13,6 +13,8 @@ else will not fix bug
 
 ## bug help
 
+There is known issue with delay time... you can change it manually
+
 some of the bugs can be fixed by retrying
 
 ### cannot enter to right url automatically

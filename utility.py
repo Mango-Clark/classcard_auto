@@ -17,7 +17,7 @@ def word_get(driver: WebDriver):
 	word = [0 for i in range(word_num + 1)]
 	mean = [0 for i in range(word_num + 1)]
 
-	retdict = {}
+	retdict = {'word_num': word_num}
 
 	for i in range(1, word_num + 1):
 		idx[i] = driver.find_element(
@@ -27,32 +27,19 @@ def word_get(driver: WebDriver):
 
 		word[i] = driver.find_element(
 		    by=By.XPATH,
-		    value=f"//*[@id='tab_set_all']/div[2]/div[{i}]/div[4]/div[1]/div[1]/div/div",
-		).text
-
-	driver.find_element(
-	    by=By.CSS_SELECTOR,
-	    value="#tab_set_all > div.card-list-title > div > div:nth-child(1) > a",
-	).click()
-
-	for i in range(1, word_num + 1):
+		    value=f'//*[@id="tab_set_all"]/div[2]/div[{i}]/div[1]',
+		).get_attribute("innerText")
 
 		mean[i] = driver.find_element(
 		    by=By.XPATH,
-		    value=f"//*[@id='tab_set_all']/div[2]/div[{i}]/div[4]/div[2]/div[1]/div/div",
-		).text
+		    value=f'//*[@id="tab_set_all"]/div[2]/div[{i}]/div[2]',
+		).get_attribute("innerText")
 
 		mean[i] = " ".join(re.split("[\n]", mean[i]))
 
 		retdict.update({idx[i]: {"word": word[i], "mean": mean[i]}})
 		retdict.update({word[i]: mean[i]})
 		retdict.update({mean[i]: word[i]})
-
-	driver.find_element(
-	    by=By.CSS_SELECTOR,
-	    value="#tab_set_all > div.card-list-title > div > div:nth-child(1) > a",
-	).click()
-
 	return retdict
 
 
