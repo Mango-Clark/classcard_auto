@@ -1,5 +1,5 @@
 import json
-import re
+import time
 
 import requests
 
@@ -10,12 +10,12 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 
 def word_get(driver: WebDriver):
 	html = BeautifulSoup(driver.page_source, "html.parser")
-	cards_ele = html.find("div", class_="flip-body")
-	word_num = len(cards_ele.find_all("div", class_="flip-card"))
+	cards = html.find("div", class_="flip-body")
+	word_num = len(cards.find_all("div", class_="flip-card"))
 
-	idx = [0 for i in range(word_num + 1)]
-	word = [0 for i in range(word_num + 1)]
-	mean = [0 for i in range(word_num + 1)]
+	idx = [0 for _ in range(word_num + 1)]
+	word = [0 for _ in range(word_num + 1)]
+	mean = [0 for _ in range(word_num + 1)]
 
 	retdict = {'word_num': word_num}
 
@@ -35,7 +35,7 @@ def word_get(driver: WebDriver):
 		    value=f'//*[@id="tab_set_all"]/div[2]/div[{i}]/div[2]',
 		).get_attribute("innerText")
 
-		mean[i] = " ".join(re.split("[\n]", mean[i]))
+		mean[i] = mean[i].replace('  ', ' ').replace('\n', ' ')
 
 		retdict.update({idx[i]: {"word": word[i], "mean": mean[i]}})
 		retdict.update({word[i]: mean[i]})
@@ -43,7 +43,7 @@ def word_get(driver: WebDriver):
 	return retdict
 
 
-def chd_wh():
+def get_study_type():
 	print("""
 학습유형을 선택해주세요.
 Ctrl + C 를 눌러 종료
@@ -55,8 +55,8 @@ Ctrl + C 를 눌러 종료
 	""")
 	while 1:
 		try:
-			ch_d = int(input(">>> "))
-			if ch_d >= 1 and ch_d <= 5:
+			study_type = int(input(">>> "))
+			if study_type >= 1 and study_type <= 5:
 				break
 			else:
 				raise ValueError
@@ -64,7 +64,7 @@ Ctrl + C 를 눌러 종료
 			print("학습유형을 다시 입력해주세요.")
 		except KeyboardInterrupt:
 			quit()
-	return ch_d
+	return study_type
 
 
 def check_id(id: str, pw: str):
@@ -97,10 +97,7 @@ def save_id():
 def get_id():
 	try:
 		with open("config.json", "r", encoding="utf-8") as f:
-			json_data = json.load(f)
-			json_data["id"]
-			json_data["pw"]
-			return json_data
+			return json.load(f)
 	except:
 		return save_id()
 
@@ -120,7 +117,6 @@ def get_url():
 	try:
 		with open("config.json", "r", encoding="utf-8") as f:
 			json_data = json.load(f)
-			json_data["url"]
 			return json_data["url"]
 	except:
 		return save_url()
@@ -144,3 +140,7 @@ Ctrl + C 를 눌러 종료
 			print("다시 입력해주세요.")
 		except KeyboardInterrupt:
 			quit()
+
+
+def log_header() -> str:
+	return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ' | '
