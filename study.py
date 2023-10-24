@@ -82,7 +82,7 @@ def do_recall(driver: WebDriver, word_dict: dict, do_logging: bool):
 
 	if do_logging:
 		with open('.log', 'a', encoding='utf-8') as log:
-			log.write(f'{log_header()}리콜 학습 시작합니다\n\n\n')
+			log.write(f'{log_header()}리콜 학습 시작합니다\n\n')
 
 	unknown_count = word_dict['word_num']
 	while unknown_count > 1:
@@ -136,7 +136,7 @@ def do_recall(driver: WebDriver, word_dict: dict, do_logging: bool):
 		print(f"남은 단어 수: {unknown_count}")
 		if do_logging:
 			with open('.log', 'a', encoding='utf-8') as log:
-				log.write(f'{log_header()}남은 단어 수: {unknown_count}\n\n')
+				log.write(f'{log_header()}남은 단어 수: {unknown_count}\n')
 		time.sleep(2.5)
 
 	print("리콜 학습 종료")
@@ -159,9 +159,9 @@ def do_spell(driver: WebDriver, word_dict: dict, do_logging: bool):
 	time.sleep(2)
 
 	unknown_count = word_dict['word_num']
-	while unknown_count > 1:
+	while unknown_count > 0:
 		data_idx = driver.find_element(
-		    by=By.XPATH,
+		    by=By.CSS_SELECTOR,
 		    value=
 		    '#wrapper-learn > div.cc-table.fill-parent-h.middle.m-center > div > div.study-content.cc-table.middle > div.study-body.fade.in > div.CardItem.showing.current',
 		).get_attribute('data-idx')
@@ -181,10 +181,13 @@ def do_spell(driver: WebDriver, word_dict: dict, do_logging: bool):
 
 		time.sleep(1.5)
 
-		driver.find_element(
-		    by=By.XPATH,
-		    value="//*[@id='wrapper-learn']/div/div/div[3]/div[2]",
-		).click()
+		try:
+			driver.find_element(
+			    by=By.XPATH,
+			    value="//*[@id='wrapper-learn']/div/div/div[3]/div[2]",
+			).click()
+		except:
+			return
 
 		unknown_count = int(
 		    driver.find_element(
@@ -249,9 +252,7 @@ def do_matching(driver: WebDriver, word_dict: dict, do_logging: bool):
 			print(f'현재 점수: {score}점')
 			time.sleep(2)
 		except KeyboardInterrupt:
-			driver.find_element(by=By.XPATH, value='/html/body/div[1]/div/div[1]/div[1]/a').click()
-			driver.find_element(by=By.XPATH, value='//*[@id="confirmModal"]/div[2]/div/div[2]/a[3]').click()
-			break
+			return
 		except:
 			with open('config.json', 'r') as f:
 				json_data = json.load(f)
@@ -280,7 +281,7 @@ def do_test(driver: WebDriver, word_dict: dict, do_logging: bool):
 	    value="//*[@id='wrapper-test']/div/div[1]/div[3]/div[3]/a",
 	).click()
 	time.sleep(2)
-	for i in range(1, question_count):
+	for i in range(1, question_count + 1):
 		time.sleep(0.5)
 		cash_given = driver.find_element(
 		    by=By.XPATH,

@@ -35,7 +35,7 @@ def word_get(driver: WebDriver):
 		    value=f'//*[@id="tab_set_all"]/div[2]/div[{i}]/div[2]',
 		).get_attribute("innerText")
 
-		mean[i] = mean[i].replace('  ', ' ').replace('\n', ' ')
+		mean[i] = mean[i].replace('\n', ' ').replace('  ', ' ')
 
 		retdict.update({idx[i]: {"word": word[i], "mean": mean[i]}})
 		retdict.update({word[i]: mean[i]})

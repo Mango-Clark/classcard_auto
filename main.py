@@ -17,7 +17,7 @@ account = get_id()
 
 if DO_LOGGING:
 	with open('.log', 'a', encoding='utf-8') as log:
-		log.write(f'{log_header()}ID/PW 불러오기 완료\n')
+		log.write(f'\n\n\n{log_header()}프로그램 시작\n{log_header()}ID/PW 불러오기 완료\n')
 
 class_url = change_url()
 
@@ -63,6 +63,16 @@ except:
 	quit()
 time.sleep(1)
 
+driver.find_element(
+    by=By.XPATH,
+    value='/html/body/div[1]/div[4]/div[3]/div[2]/div',
+).click()
+time.sleep(0.1)
+driver.find_element(
+    by=By.XPATH,
+    value='/html/body/div[1]/div[4]/div[3]/div[2]/div/ul/li[1]/a',
+).click()
+
 word_dict = word_get(driver)
 word_num = word_dict['word_num']
 if DO_LOGGING:
@@ -73,4 +83,5 @@ if DO_LOGGING:
 
 while True:
 	do_stduy(get_study_type(), driver, word_dict, DO_LOGGING)
+	driver.get(class_url)
 	driver.get(class_url)
