@@ -1,5 +1,6 @@
 import json
 import re
+import sys
 import time
 
 from selenium.webdriver.common.by import By
@@ -201,6 +202,19 @@ def do_spell(driver: WebDriver, word_dict: dict, do_logging: bool):
 
 
 def do_matching(driver: WebDriver, word_dict: dict, do_logging: bool):
+	while True:
+		goal_score = input("목표 점수를 입력하세요\n____0을 입력하면 제한 시간동안 무제한으로 합니다.\n>>> ")
+		try:
+			goal_score = int(goal_score)
+			if goal_score < 0:
+				print('음이 아닌 정수를 입력해 주세요...')
+				continue
+			if goal_score == 0:
+				goal_score = sys.maxint
+			break
+		except ValueError:
+			print('정수를 입력해주세요...')
+
 	driver.find_element(
 	    by=By.XPATH,
 	    value="/html/body/div[2]/div/div[2]/div[1]/div[5]",
@@ -245,11 +259,14 @@ def do_matching(driver: WebDriver, word_dict: dict, do_logging: bool):
 				else:
 					continue
 				break
-			score = driver.find_element(
-			    by=By.XPATH,
-			    value='//*[@id="match-wrapper"]/div[1]/div[2]/span[2]',
-			).get_attribute('innerText')
+			score = int(
+			    driver.find_element(
+			        by=By.XPATH,
+			        value='//*[@id="match-wrapper"]/div[1]/div[2]/span[2]',
+			    ).get_attribute('innerText'))
 			print(f'현재 점수: {score}점')
+			if score >= goal_score:
+				return
 			time.sleep(2)
 		except KeyboardInterrupt:
 			return
