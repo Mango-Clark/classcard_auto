@@ -1,5 +1,5 @@
 import json
-import time
+from datetime import datetime
 
 import requests
 
@@ -17,7 +17,7 @@ def word_get(driver: WebDriver):
 	word = [0 for _ in range(word_num + 1)]
 	mean = [0 for _ in range(word_num + 1)]
 
-	retdict = {'word_num': word_num}
+	retdict = {}
 
 	for i in range(1, word_num + 1):
 		idx[i] = driver.find_element(
@@ -35,11 +35,9 @@ def word_get(driver: WebDriver):
 		    value=f'//*[@id="tab_set_all"]/div[2]/div[{i}]/div[2]',
 		).get_attribute("innerText")
 
-		mean[i] = mean[i].replace('\n', ' ').replace('  ', ' ')
+		mean[i] = mean[i].replace("\n", " ").replace("  ", " ")
 
 		retdict.update({idx[i]: {"word": word[i], "mean": mean[i]}})
-		retdict.update({word[i]: mean[i]})
-		retdict.update({mean[i]: word[i]})
 	return retdict
 
 
@@ -71,7 +69,8 @@ def check_id(id: str, pw: str):
 	print("계정 정보를 확인하고 있습니다 잠시만 기다려주세요!")
 	headers = {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
 	data = {"login_id": id, "login_pwd": pw}
-	res = requests.post("https://www.classcard.net/LoginProc", headers=headers, data=data)
+	res = requests.post(
+	    "https://www.classcard.net/LoginProc", headers=headers, data=data)
 	status = res.json()
 	if status["result"] == "ok":
 		return True
@@ -130,9 +129,11 @@ Ctrl + C 를 눌러 종료
 	while 1:
 		try:
 			ch_d = input(">>> ")
-			if ch_d.casefold() == "N".casefold() or ch_d.casefold() == "NO".casefold():
+			if ch_d.casefold() == "N".casefold() or ch_d.casefold() == "NO".casefold(
+			):
 				return get_url()
-			elif ch_d.casefold() == "Y".casefold() or ch_d.casefold() == "YES".casefold():
+			elif (ch_d.casefold() == "Y".casefold() or
+			      ch_d.casefold() == "YES".casefold()):
 				return save_url()
 			else:
 				raise ValueError
@@ -142,5 +143,48 @@ Ctrl + C 를 눌러 종료
 			quit()
 
 
-def log_header() -> str:
-	return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ' | '
+class logmessage:
+	__loglv = 3
+
+	def __init__(self, msg: str = "") -> None:
+		self.log_level(3)
+		if type(msg) is not str:
+			raise ValueError(
+			    f"Message must be a string. Got {msg} as type {type(msg)}.")
+		else:
+			self.log_message(msg)
+
+	def log_level(self, level: int) -> None:
+		if type(level) is not int:
+			raise ValueError(
+			    f"Type of logging level must be int. Got {level} as type {type(level)} instead."
+			)
+		if level < 0 or level > 3:
+			raise ValueError(
+			    f"Logging level must be in [0, 3]. Got {level} which is not in range."
+			)
+		self.__loglv = level
+
+	def log_message(self, msg: str, level: int = __loglv) -> None:
+		if type(level) is not int:
+			raise ValueError(
+			    f"Type of logging level must be int. Got {level} as type {type(level)} instead."
+			)
+		if level == 0:
+			return
+		if level < 0 or level > 3:
+			raise ValueError(
+			    f"Logging level must be in [0, 3]. Got {level} which is not in range."
+			)
+		if type(msg) is not str:
+			raise ValueError(
+			    f"Type of msg must be a string. Got {msg} as type {type(msg)} instead."
+			)
+		log_header = str(datetime.now())[:-3] + " | "
+		mlist = msg.split("\n")
+		for m in mlist:
+			if level // 2 == 1:
+				with open(".log", "a", encoding="utf-8") as log:
+					log.write(log_header + m + "\n")
+			if level % 2 == 1:
+				print(log_header + m)
